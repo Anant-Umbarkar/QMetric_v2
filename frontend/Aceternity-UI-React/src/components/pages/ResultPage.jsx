@@ -4,6 +4,11 @@ import BloomsAnalysisChart from './report/BloomAnalysisChart';
 import ModuleAnalysisChart from './report/ModuleAnalysisChart';
 import QuestionDistributionChart from './report/QuestionDistributionChart';
 import COCoverageChart from './report/COCoverageChart';
+import POAchievementGauge from './report/Poachievementgauge';
+import POCoverageBarChart from './report/Pocoveragebarchart';
+import COPOHeatmapChart from './report/Copoheatmapchart';
+import COPOGroupedBarChart from './report/Copogroupedbarchart';
+
 
 function polarToCartesian(cx, cy, r, angleDeg) {
   const angleRad = (angleDeg - 90) * Math.PI / 180.0;
@@ -1234,7 +1239,42 @@ const ResultPage = () => {
                   <ModuleAnalysisChart moduleData={moduleData} />
                 </div>
                 <div className="mt-6"><COCoverageChart coRecommendations={coRecommendations} coData={coData} /></div>
-                <QuestionDistributionChart questionData={questionData} />
+
+{/* PO Charts — only shown when PO mapping data exists */}
+{poKeys.length > 0 && (
+  <div className="space-y-6 border-t border-gray-100 pt-6 mt-6">
+    <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">
+      PO Analysis
+    </h3>
+
+    {/* Row 1: Gauge + Bar Chart side by side */}
+    <div className="flex flex-col md:flex-row gap-6 items-start">
+      {poAchievement !== null && (
+        <POAchievementGauge
+          poAchievement={poAchievement}
+          coPOPenalty={coPOPenalty}
+        />
+      )}
+      <POCoverageBarChart poCoverage={poCoverage} />
+    </div>
+
+    {/* Row 2: Heatmap */}
+    <COPOHeatmapChart
+      coPOCoverage={coPOCoverage}
+      coKeys={coKeys}
+      poKeys={poKeys}
+    />
+
+    {/* Row 3: Grouped Bar */}
+    <COPOGroupedBarChart
+      coPOCoverage={coPOCoverage}
+      coKeys={coKeys}
+      poKeys={poKeys}
+    />
+  </div>
+)}
+
+<QuestionDistributionChart questionData={questionData} />
               </div>
             </div>
           </div>

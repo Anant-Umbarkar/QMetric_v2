@@ -3,12 +3,9 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 
 // Login Route
-router.post('/login', (req, res, next) => {
-  console.log(" Auth route /login hit");
-  next();
-}, authController.login);
+router.post('/login', authController.login);
 
-router.post('/create-account', (req, res) => {
-  res.json({ message: "Register endpoint - to be implemented" });
-}, authController.register);
+// Register Route
+router.post('/create-account', authController.register);
+
 module.exports = router;

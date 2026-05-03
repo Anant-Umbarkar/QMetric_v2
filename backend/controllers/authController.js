@@ -2,44 +2,42 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../Model/user');
 
-// Login Controller
+// Guard against missing JWT secret at startup
+if (!process.env.ACCESS_TOKEN_SECRET) {
+    throw new Error("ACCESS_TOKEN_SECRET is not defined");
+}
+
+// Login Controller 
 const login = async (req, res) => {
-    console.log(" Login request received:", req.body);
     const { email, password } = req.body;
 
-    // Check if both email and password are provided
     if (!email || !password) {
-        console.log(" Missing email or password");
         return res.status(400).json({
             error: true,
             message: "Credentials required.",
         });
     }
 
-    // Find user by email
-    const user = await User.findOne({ email });
-    if (!user) {
-        console.log(" User not found:", email);
-        return res.status(404).json({
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({
             error: true,
-            message: "User does not exist.",
-        });
-    }
-
-    console.log("User found:", email);
-
-    // Compare passwords
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-        console.log("Invalid password for:", email);
-        return res.status(401).json({
-            error: true,
-            message: "Invalid credentials",
+            message: "Invalid email format",
         });
     }
 
     try {
-        // Generate JWT Token
+        const user = await User.findOne({ email });
+
+        // Unified error message to prevent user enumeration
+        if (!user || !(await bcrypt.compare(password, user.password))) {
+            return res.status(401).json({
+                error: true,
+                message: "Invalid credentials",
+            });
+        }
+
         const accessToken = jwt.sign(
             { userId: user._id },
             process.env.ACCESS_TOKEN_SECRET,
@@ -52,43 +50,47 @@ const login = async (req, res) => {
             user: { userName: user.userName, email: user.email },
             accessToken,
         });
+
     } catch (error) {
-        console.log(" Token creation error:", error.message);
-        return res.status(500).json({ error: true, message: "Error creating token" });
+        return res.status(500).json({
+            error: true,
+            message: "Internal server error",
+        });
     }
 };
 
 // Register Controller
 const register = async (req, res) => {
-    console.log(" Register request received:", req.body);
-
     const { userName, email, password } = req.body;
 
-    // Validate input
     if (!userName || !email || !password) {
-        console.log(" Missing fields");
         return res.status(400).json({
             error: true,
             message: "All fields are required.",
         });
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({
+            error: true,
+            message: "Invalid email format",
+        });
+    }
+
     try {
-        // Check if user already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            console.log(" User already exists:", email);
             return res.status(409).json({
                 error: true,
                 message: "User already exists.",
             });
         }
 
-        // Hash password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Create new user
         const newUser = new User({
             userName,
             email,
@@ -97,15 +99,12 @@ const register = async (req, res) => {
 
         await newUser.save();
 
-        console.log(" User registered successfully:", email);
-
         return res.status(201).json({
             error: false,
             message: "User registered successfully",
         });
 
     } catch (error) {
-        console.log(" Registration error:", error.message);
         return res.status(500).json({
             error: true,
             message: "Internal server error",
