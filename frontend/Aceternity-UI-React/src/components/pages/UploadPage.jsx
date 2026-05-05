@@ -1,6 +1,28 @@
 import React, { useState } from 'react';
 import { Trash2, Upload, FileText, Check, Target, BookOpen, Loader2, AlertCircle } from 'lucide-react';
 
+const Tooltip = ({ children, tip }) => (
+  <span className="relative inline-block group cursor-help ml-1">
+    {children}
+    <span className="invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-opacity duration-150
+      absolute bottom-[calc(100%+6px)] left-1/2 -translate-x-1/2
+      bg-gray-900 border border-gray-600 text-gray-200 text-xs rounded-lg px-3 py-2
+      whitespace-nowrap z-50 pointer-events-none shadow-xl leading-snug">
+      {tip}
+      <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+    </span>
+  </span>
+);
+
+const fieldTips = {
+  "College Name":   "Full official name of your institution, e.g. 'Anna University'",
+  "Branch":         "Your department/stream, e.g. 'CSE', 'ECE', 'Mechanical'",
+  "Year Of Study":  "Academic year number, e.g. '2 for second year'",
+  "Semester":       "Current semester number, e.g. '3'",
+  "Course Name":    "Full subject name, e.g. 'Data Structures and Algorithms'",
+  "Course Code":    "Official code from your syllabus, e.g. 'CS3301'",
+  "Course Teacher": "Faculty name teaching this course, e.g. 'Dr. R. Krishnamurthy'",
+};
 
 const SectionCard = ({ badge, title, subtitle, icon, children }) => (
   <div className="bg-gray-800/50 border border-gray-700/60 rounded-2xl p-6">
@@ -50,8 +72,8 @@ const UploadPage = () => {
   const validateForm = () => {
     setError('');
 
-    const requiredFields = ["College Name", "Branch", "Course Name", "Course Code"];
-    for (let field of requiredFields) {
+    const allFields = Object.keys(formData);
+    for (let field of allFields) {
       if (!formData[field].trim()) { setError(`${field} is required`); return false; }
     }
 
@@ -108,13 +130,11 @@ const UploadPage = () => {
     hours: ""
   });
 
-  // FIXED: Preserve existing COs instead of recreating all
   const handleNumCOsChange = (e) => {
     const num = parseInt(e.target.value) || 0;
     setNumCOs(e.target.value);
     if (num > 20) { setError('Maximum 20 course outcomes allowed'); return; }
     setError('');
-
     setCourseOutcomes(prev => {
       if (num <= 0) return [];
       if (num > prev.length) {
@@ -125,13 +145,11 @@ const UploadPage = () => {
     });
   };
 
-  // FIXED: Preserve existing modules instead of recreating all
   const handleNumModulesChange = (e) => {
     const num = parseInt(e.target.value) || 0;
     setNumModules(e.target.value);
     if (num > 20) { setError('Maximum 20 modules allowed'); return; }
     setError('');
-
     setModules(prev => {
       if (num <= 0) return [];
       if (num > prev.length) {
@@ -155,7 +173,6 @@ const UploadPage = () => {
     setNumCOs(prev => String(parseInt(prev) - 1));
   };
 
-  // FIXED: Functional updater to avoid stale state
   const handleCOChange = (index, field, value) => {
     setCourseOutcomes(prev => {
       const updated = [...prev];
@@ -170,7 +187,6 @@ const UploadPage = () => {
     setNumModules(prev => String(parseInt(prev) - 1));
   };
 
-  // FIXED: Functional updater to avoid stale state
   const handleModuleChange = (index, field, value) => {
     setModules(prev => {
       const updated = [...prev];
@@ -180,7 +196,6 @@ const UploadPage = () => {
     setError('');
   };
 
-  // FIXED: Functional updater to avoid stale state
   const handlePOMappingChange = (coIndex, poKey, value) => {
     setCourseOutcomes(prev => {
       const updated = [...prev];
@@ -224,8 +239,6 @@ const UploadPage = () => {
 
     const transformedSequence = [
       ...courseOutcomes.map((co, index) => {
-        // Build poMapping — only include POs with valid values (1–3)
-        // Backend reads this as CO_PO_Map[coKey] = { PO1: 3, PO2: 1, ... }
         const poMapping = {};
         poKeys.forEach(po => {
           const val = co.poMapping?.[po];
@@ -233,24 +246,18 @@ const UploadPage = () => {
             poMapping[po] = parseInt(val);
           }
         });
-
         return {
-          name: `CO${index + 1}`,  // Backend extracts number via name.match(/\d+/)
+          name: `CO${index + 1}`,
           type: "CO",
           weight: parseFloat(co.weight),
-          blooms: [co.blooms],     // Backend lowercases this to match bloomLevelMap
-          poMapping                // Backend uses this to build CO_PO_Map for C4 penalty
+          blooms: [co.blooms],
+          poMapping
         };
       }),
       ...modules.map((module, index) => ({
-        // ALIGNED WITH BACKEND: name must contain a number — backend does name.match(/\d+/)
-        // to get module index. Using "Module 1", "Module 2" etc. ensures correct matching.
-        // DO NOT use free-text names like "Introduction to DS" — they won't match.
-        name: `Module ${index + 1}`,  // Always use numbered format
+        name: `Module ${index + 1}`,
         type: "Module",
         hours: parseFloat(module.hours)
-        // Note: module.name (display name) is intentionally dropped —
-        // backend only uses the number from name, not the label itself
       }))
     ];
 
@@ -264,7 +271,6 @@ const UploadPage = () => {
       if (!token) throw new Error('No authentication token found. Please login first.');
 
       const response = await fetch(`http://localhost:80/upload/totext`, {
-      // const response = await fetch(`https://qmetric-2.onrender.com/upload/totext`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formDataToSend
@@ -273,9 +279,6 @@ const UploadPage = () => {
       if (response.ok) {
         try {
           const responseData = await response.json();
-
-          // Backend now returns the full saved document (not just evaluationResult)
-          // so responseData will have _id, Sequence, blommLevelMap, Collected Data etc.
           const resultId = responseData._id || responseData.id || responseData;
 
           if (resultId) {
@@ -328,13 +331,8 @@ const UploadPage = () => {
     a.click(); URL.revokeObjectURL(a.href);
   };
 
-  // Bloom levels ordered to match backend's allBloomLevels standard order:
-  // ['create', 'evaluate', 'analyze', 'apply', 'understand', 'remember']
-  // The dynamic bloomLevelMap assigns levels based on which ones are actually used,
-  // sorted by this standard order — so using these exact values matters.
   const bloomsLevels = ['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'];
 
-  const requiredFields = ["College Name", "Branch", "Course Name", "Course Code"];
   const weightSum = getCurrentWeightSum();
   const weightOk = Math.abs(weightSum - 100) <= 0.01;
   const poKeys = getPOKeys();
@@ -377,7 +375,9 @@ const UploadPage = () => {
               <div key={key}>
                 <label className={labelClass}>
                   {key}
-                  {requiredFields.includes(key) && <span className="text-red-400 ml-1">*</span>}
+                  <Tooltip tip={fieldTips[key]}>
+                    <span className="text-red-400">*</span>
+                  </Tooltip>
                 </label>
                 <input
                   type="text"
@@ -401,7 +401,10 @@ const UploadPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
             <div>
               <label className={labelClass}>
-                Number of Course Outcomes <span className="text-red-400">*</span>
+                Number of Course Outcomes
+                <Tooltip tip="How many Course Outcomes this subject has. Typically 5–7. Max 20.">
+                  <span className="text-red-400">*</span>
+                </Tooltip>
               </label>
               <input
                 type="number" value={numCOs} onChange={handleNumCOsChange}
@@ -412,7 +415,9 @@ const UploadPage = () => {
             <div>
               <label className={labelClass}>
                 Number of Programme Outcomes (POs)
-                <span className="text-gray-500 font-normal ml-1">(optional)</span>
+                <Tooltip tip="Total POs your programme has. Typically 12 for engineering. Leave 0 to skip PO mapping.">
+                  <span className="text-gray-500">*</span>
+                </Tooltip>
               </label>
               <input
                 type="number" value={numPOs} onChange={handleNumPOsChange}
@@ -461,7 +466,12 @@ const UploadPage = () => {
                   {/* Weight + Blooms */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className={labelClass}>Weight (%) <span className="text-red-400">*</span></label>
+                      <label className={labelClass}>
+                        Weight (%)
+                        <Tooltip tip="% of total marks this CO carries. All CO weights must sum to 100%.">
+                          <span className="text-red-400">*</span>
+                        </Tooltip>
+                      </label>
                       <input
                         type="number" placeholder="0–100" value={co.weight}
                         onChange={(e) => handleCOChange(index, 'weight', e.target.value)}
@@ -469,7 +479,12 @@ const UploadPage = () => {
                       />
                     </div>
                     <div>
-                      <label className={labelClass}>Bloom's Level <span className="text-red-400">*</span></label>
+                      <label className={labelClass}>
+                        Bloom's Level
+                        <Tooltip tip="Cognitive level this CO targets — from Remember (lowest) to Create (highest).">
+                          <span className="text-red-400">*</span>
+                        </Tooltip>
+                      </label>
                       <select value={co.blooms}
                         onChange={(e) => handleCOChange(index, 'blooms', e.target.value)}
                         className={`${inputClass} cursor-pointer`}>
@@ -482,9 +497,11 @@ const UploadPage = () => {
                   {/* PO Mapping Grid */}
                   {poKeys.length > 0 && (
                     <div className="mt-4 pt-4 border-t border-gray-600/40">
-                      <p className="text-gray-400 text-xs font-medium mb-3">
+                      <p className="text-gray-400 text-xs font-medium mb-3 flex items-center gap-1">
                         PO Mapping
-                        {/* <span className="text-gray-600 ml-2 font-normal">0 = no relation · 1 = low · 2 = medium · 3 = high</span> */}
+                        <Tooltip tip="Correlation strength per Programme Outcome: 0 = none · 1 = low · 2 = medium · 3 = high">
+                          <span className="text-gray-500 cursor-help">*</span>
+                        </Tooltip>
                       </p>
                       <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-12 gap-2">
                         {poKeys.map(po => (
@@ -516,7 +533,12 @@ const UploadPage = () => {
           subtitle="Organize your course content into modules with corresponding teaching hours."
         >
           <div className="mb-5">
-            <label className={labelClass}>Number of Modules <span className="text-red-400">*</span></label>
+            <label className={labelClass}>
+              Number of Modules
+              <Tooltip tip="Total number of units/modules in this course. Typically 5. Max 20.">
+                <span className="text-red-400">*</span>
+              </Tooltip>
+            </label>
             <input type="number" value={numModules} onChange={handleNumModulesChange}
               min="1" max="20" placeholder="Enter number (1–20)"
               className={`${inputClass} md:w-56`} />
@@ -547,13 +569,23 @@ const UploadPage = () => {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div className="md:col-span-2">
-                      <label className={labelClass}>Module Name <span className="text-red-400">*</span></label>
+                      <label className={labelClass}>
+                        Module Name
+                        <Tooltip tip="Descriptive name or topic title for this module, e.g. 'Arrays and Linked Lists'">
+                          <span className="text-red-400">*</span>
+                        </Tooltip>
+                      </label>
                       <input type="text" placeholder="Enter module name or topic..."
                         value={module.name} onChange={(e) => handleModuleChange(index, 'name', e.target.value)}
                         className={inputClass} />
                     </div>
                     <div>
-                      <label className={labelClass}>Teaching Hours <span className="text-red-400">*</span></label>
+                      <label className={labelClass}>
+                        Teaching Hours
+                        <Tooltip tip="Number of lecture hours allocated to this module per semester.">
+                          <span className="text-red-400">*</span>
+                        </Tooltip>
+                      </label>
                       <input type="number" placeholder="Hours" value={module.hours}
                         onChange={(e) => handleModuleChange(index, 'hours', e.target.value)}
                         className={inputClass} min="0" step="0.5" />
