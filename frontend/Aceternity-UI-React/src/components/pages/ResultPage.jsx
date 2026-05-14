@@ -121,8 +121,9 @@ const ResultPage = () => {
   const fetchData = async (authToken) => {
     try {
       setLoading(true); setError(null);
-      const response = await fetch('http://localhost:80/upload/totext', {
-        // const response = await fetch('https://qmetric-2.onrender.com/upload/totext', {
+      const response = await fetch(
+        // 'http://localhost:80/upload/totext' 
+        'https://qmetric-v2.onrender.com/upload/totext', {
         method: 'GET',
         headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' },
       });
