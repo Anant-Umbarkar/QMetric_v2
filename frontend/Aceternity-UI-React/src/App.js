@@ -10,7 +10,7 @@ import CreditsPage from "./components/pages/Creditspage";
 
 function App() {
   return (
-      <div className="bg-black min-h-screen text-white">
+      <div className="bg-background min-h-screen text-foreground">
         <Navbar />
         <ScrollToTop />
         <Routes>
