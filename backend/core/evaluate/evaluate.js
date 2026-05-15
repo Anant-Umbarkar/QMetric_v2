@@ -53,15 +53,17 @@ function obtainD(QHBTL, COBTL, returnRemark = false) {
     let qScore = 0;
     let remark = "";
 
-    if (D === 0 || D === -1) {
+    if (D === 0) {
         remark = "Matches Expected Blooms Level";
-        qScore = 1;
-    } else if (D < -1) {
+        qScore = 0;
+    } else if (D < 0) {
         remark = "Higher than Expected Blooms Level";
-        qScore = 2;
-    } else if (D >= 1) {
+        // D = -1 => +1, D <= -2 => +2 (capped to +2)
+        qScore = Math.min(2, Math.max(1, -D));
+    } else {
         remark = "Lower than Expected Blooms Level";
-        qScore = -1;
+        // D = 1 => -1, D >= 2 => -2 (capped to -2)
+        qScore = Math.max(-2, Math.min(-1, -D));
     }
 
     return returnRemark ? { qScore, remark } : qScore;
@@ -326,6 +328,14 @@ exports.Evaluate = (SequenceData, pre_data, Module_Hrs, bloomLevelMap, CO_PO_Map
             }
         }
     });
+
+    // Normalize actual marks in ModuleWeights to percentages
+    if (checkModule) {
+        const totalMarks = ModuleWeights.reduce((sum, module) => sum + module.actual, 0);
+        ModuleWeights.forEach(module => {
+            module.actual = totalMarks > 0 ? Math.round((module.actual / totalMarks) * 100) : 0;
+        });
+    }
 
     // Normalize QP score
     const QP_Final = ((QP - QPMin) / ((QPMax - QPMin) || 1)) * 100;

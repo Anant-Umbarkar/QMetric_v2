@@ -103,8 +103,8 @@ const Navbar = () => {
         :  'https://qmetric-v2.onrender.com/auth/login';
 
       //  const apiUrl = isRegisterMode
-      //   ?  'http://localhost:80/auth/create-account'
-      //   :  'http://localhost:80/auth/login';
+        // ?  'http://localhost:80/auth/create-account'
+        // :  'http://localhost:80/auth/login';
 
 
       const requestBody = isRegisterMode

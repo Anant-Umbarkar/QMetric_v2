@@ -60,7 +60,7 @@ const UploadPage = () => {
   const [error, setError] = useState('');
 
   const labelClass = "block text-gray-300 text-sm font-medium mb-2";
-  const inputClass = "w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all";
+const inputClass = "w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-inner-spin-button]:m-0 [-moz-appearance:textfield]";
 
   const getCurrentWeightSum = () => courseOutcomes.reduce((sum, co) => sum + (parseFloat(co.weight) || 0), 0);
 
@@ -271,8 +271,9 @@ const UploadPage = () => {
       if (!token) throw new Error('No authentication token found. Please login first.');
 
       const response = await fetch(
-        // `http://localhost:80/upload/totext` 
-         `https://qmetric-v2.onrender.com/upload/totext`, {
+        // `http://localhost:80/upload/totext` ,
+         `https://qmetric-v2.onrender.com/upload/totext`, 
+         {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formDataToSend
@@ -515,7 +516,7 @@ const UploadPage = () => {
                               placeholder="–"
                               value={co.poMapping?.[po] ?? ''}
                               onChange={(e) => handlePOMappingChange(index, po, e.target.value)}
-                              className="w-full text-center px-1 py-1.5 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                              className="w-full text-center px-1 py-1.5 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-inner-spin-button]:m-0 [-moz-appearance:textfield]"
                             />
                           </div>
                         ))}

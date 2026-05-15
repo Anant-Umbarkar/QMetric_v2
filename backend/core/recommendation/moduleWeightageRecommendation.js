@@ -4,8 +4,8 @@ function generateModuleRecommendations(moduleWeights) {
     const recommendations = [];
 
     moduleWeights.forEach((module, index) => {
-        const expected = Math.round(module.expected);  
-        const actual = Math.round(module.actual);      
+        const expected = Math.round(module.expected);
+        const actual = Math.round(module.actual);
 
         if (expected !== actual) {
             recommendations.push({
