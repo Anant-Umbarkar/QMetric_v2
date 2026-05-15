@@ -420,6 +420,17 @@ const ResultPage = () => {
         </tr>`;
       }).join('');
 
+      const coRecommendationRows = coRecommendations.map(rec => {
+        const variance = (rec.actual || 0) - (rec.expected || 0);
+        return `<tr>
+          <td class="text-center">${rec.co}</td>
+          <td class="text-center">${(rec.actual || 0).toFixed(1)}%</td>
+          <td class="text-center">${(rec.expected || 0).toFixed(1)}%</td>
+          <td class="text-center ${variance < 0 ? 'negative' : 'positive'}">${variance > 0 ? '+' : ''}${variance.toFixed(1)}%</td>
+          <td>${rec.suggestion}</td>
+        </tr>`;
+      }).join('');
+
       const moduleRecommendationRows = moduleRecommendations.map(rec => {
         const variance = (rec.actual || 0) - (rec.expected || 0);
         return `<tr>
