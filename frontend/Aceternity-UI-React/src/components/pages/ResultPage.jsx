@@ -93,139 +93,145 @@ const ResultPage = () => {
     document.body.removeChild(link);
   };
 
-  const downloadCertificate = async () => {
-    try {
-      setIsDownloading(true);
-      const printWindow = window.open('', '_blank');
-      if (!printWindow) throw new Error('Unable to open print window');
-      const collectedData = data['Collected Data']?.[0];
-      const finalScore = collectedData?.FinalScore || 0;
-      const today = new Date();
-      const dateStr = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const downloadCertificate = () => {
+    setIsDownloading(true);
 
-      const certificateHTML = `
-        <!DOCTYPE html><html lang="en"><head>
-          <meta charset="UTF-8">
-          <title>Question Paper Quality Certificate</title>
-          <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
-          <style>
-            *{margin:0;padding:0;box-sizing:border-box}
-            body{font-family:'Libre Baskerville',Georgia,serif;background:#d0cec9;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;padding:30px 20px}
-            .certificate{width:750px;min-height:1060px;background:#f5f2ec;position:relative;box-shadow:0 15px 50px rgba(0,0,0,.35);overflow:hidden}
-            .cert-watermark{position:absolute;inset:0;background-image:repeating-linear-gradient(45deg,rgba(180,160,100,.07) 0,rgba(180,160,100,.07) 1px,transparent 1px,transparent 18px),repeating-linear-gradient(-45deg,rgba(180,160,100,.07) 0,rgba(180,160,100,.07) 1px,transparent 1px,transparent 18px);z-index:0;pointer-events:none}
-            .wave-tr{position:absolute;top:0;right:0;width:340px;height:290px;z-index:2;display:block}
-            .wave-bl{position:absolute;bottom:0;left:0;width:340px;height:290px;z-index:2;display:block}
-            .cert-body{position:relative;z-index:3;padding:52px 70px 50px 70px}
-            .header-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:0}
-            .title-block{flex:1;padding-right:16px}
-            .cert-title{font-family:'Dancing Script',cursive;font-size:54px;font-weight:600;color:#1a1a2e;line-height:1.15;margin:0}
-            .by-qmetric{font-family:'Montserrat',sans-serif;font-size:13px;font-weight:700;letter-spacing:3.5px;color:#1a1a2e;margin-top:10px;text-align:left}
-            .badge-wrap{flex-shrink:0;margin-top:8px}
-            .intro-para{font-family:'Libre Baskerville',serif;font-size:12.5px;line-height:1.9;color:#1a1a1a;text-align:center;margin-top:32px;margin-bottom:22px}
-            .detail-para{font-family:'Libre Baskerville',serif;font-size:12px;line-height:2;color:#1a1a1a;text-align:center;margin-bottom:24px}
-            .blank{display:inline-block;min-width:80px;border-bottom:1.5px solid #222;vertical-align:bottom;padding-bottom:1px;font-style:italic;font-weight:600;color:#1a1a2e}
-            .assessment-block{font-family:'Libre Baskerville',serif;font-size:12px;color:#1a1a1a;margin-bottom:32px}
-            .assessment-block p{margin-bottom:5px}
-            .assessment-block ul{list-style:none;padding-left:10px}
-            .assessment-block ul li{font-weight:700;letter-spacing:.4px;line-height:1.95}
-            .assessment-block ul li::before{content:'• '}
-            .score-center-row{display:flex;justify-content:center;margin-bottom:38px}
-            .score-box{border:2px solid #c9a84c;background:rgba(255,255,255,.35);padding:18px 48px 16px 48px;text-align:center}
-            .score-box-title{font-family:'Dancing Script',cursive;font-size:27px;color:#1a1a2e;margin-bottom:4px}
-            .score-value-row{font-family:'Dancing Script',cursive;font-size:27px;color:#1a1a2e}
-            .score-underline{display:inline-block;min-width:70px;border-bottom:2px solid #1a1a2e;text-align:center;vertical-align:bottom}
-            .footer-row{display:flex;justify-content:space-between;align-items:flex-end;margin-top:12px}
-            .date-block{text-align:center}
-            .date-line{width:200px;border-bottom:1.5px solid #222;margin-bottom:6px;padding-bottom:4px;font-family:'Libre Baskerville',serif;font-size:12px;font-weight:600;color:#1a1a2e;text-align:center;min-height:22px}
-            .date-label{font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;letter-spacing:1px;color:#333;text-align:center}
-            @media print{body{background:white;padding:0}.certificate{box-shadow:none}@page{margin:0;size:A4 portrait}}
-          </style>
-        </head><body>
-          <div class="certificate">
-            <div class="cert-watermark"></div>
-            <svg class="wave-tr" viewBox="0 0 340 290" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-              <path d="M340,0 L340,290 Q200,250 170,155 Q120,40 340,0 Z" fill="#0d1b4b"/>
-              <path d="M340,0 Q305,75 258,128 Q210,178 170,155 Q200,250 340,290" fill="none" stroke="#c9a84c" stroke-width="2.5"/>
-              <path d="M340,0 Q295,65 248,118 Q202,168 180,150 Q208,245 340,290 L340,0 Z" fill="#1a2f6b" opacity="0.45"/>
-            </svg>
-            <svg class="wave-bl" viewBox="0 0 340 290" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-              <path d="M0,290 L0,0 Q140,40 170,135 Q220,250 0,290 Z" fill="#0d1b4b"/>
-              <path d="M0,290 Q35,215 82,162 Q130,112 170,135 Q140,40 0,0" fill="none" stroke="#c9a84c" stroke-width="2.5"/>
-              <path d="M0,290 Q45,225 92,172 Q138,122 160,140 Q132,45 0,0 L0,290 Z" fill="#1a2f6b" opacity="0.45"/>
-            </svg>
-            <div class="cert-body">
-              <div class="header-row">
-                <div class="title-block">
-                  <h1 class="cert-title">Question paper<br>quality certificate</h1>
-                  <p class="by-qmetric">BY QMETRIC</p>
+    Promise.resolve()
+      .then(() => {
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) throw new Error('Unable to open print window');
+
+        const collectedData = data['Collected Data']?.[0];
+        const finalScore = collectedData?.FinalScore || 0;
+        const today = new Date();
+        const dateStr = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        const certificateHTML = `
+          <!DOCTYPE html><html lang="en"><head>
+            <meta charset="UTF-8">
+            <title>Question Paper Quality Certificate</title>
+            <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+            <style>
+              *{margin:0;padding:0;box-sizing:border-box}
+              body{font-family:'Libre Baskerville',Georgia,serif;background:#d0cec9;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;padding:30px 20px;color:#1a1a2e}
+              .certificate{width:750px;min-height:1060px;background:#f5f2ec;position:relative;box-shadow:0 15px 50px rgba(0,0,0,.35);overflow:hidden}
+              .cert-watermark{position:absolute;inset:0;background-image:repeating-linear-gradient(45deg,rgba(180,160,100,.07) 0,rgba(180,160,100,.07) 1px,transparent 1px,transparent 18px),repeating-linear-gradient(-45deg,rgba(180,160,100,.07) 0,rgba(180,160,100,.07) 1px,transparent 1px,transparent 18px);z-index:0;pointer-events:none}
+              .qmetric-watermark{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-15deg);font-family:'Libre Baskerville',Georgia,serif;font-size:96px;font-weight:700;color:rgba(26,26,46,0.08);letter-spacing:16px;text-transform:uppercase;z-index:1;pointer-events:none;white-space:nowrap}
+              .wave-tr{position:absolute;top:0;right:0;width:340px;height:290px;z-index:2;display:block}
+              .wave-bl{position:absolute;bottom:0;left:0;width:340px;height:290px;z-index:2;display:block}
+              .cert-body{position:relative;z-index:3;padding:52px 70px 50px 70px}
+              .header-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:0}
+              .title-block{flex:1;padding-right:16px}
+              .cert-title{font-size:54px;font-weight:700;color:#1a1a2e;line-height:1.15;margin:0}
+              .by-qmetric{font-size:13px;font-weight:700;letter-spacing:3.5px;color:#1a1a2e;margin-top:10px;text-align:left}
+              .badge-wrap{flex-shrink:0;margin-top:8px}
+              .intro-para{font-size:12.5px;line-height:1.9;color:#1a1a1a;text-align:center;margin-top:32px;margin-bottom:22px}
+              .detail-para{font-size:12px;line-height:2;color:#1a1a1a;text-align:center;margin-bottom:24px}
+              .blank{display:inline-block;min-width:80px;border-bottom:1.5px solid #222;vertical-align:bottom;padding-bottom:1px;font-style:italic;font-weight:600;color:#1a1a2e}
+              .assessment-block{font-size:12px;color:#1a1a1a;margin-bottom:32px}
+              .assessment-block p{margin-bottom:5px}
+              .assessment-block ul{list-style:none;padding-left:10px}
+              .assessment-block ul li{font-weight:700;letter-spacing:.4px;line-height:1.95}
+              .assessment-block ul li::before{content:'• '}
+              .score-center-row{display:flex;justify-content:center;margin-bottom:38px}
+              .score-box{border:2px solid #c9a84c;background:rgba(255,255,255,.35);padding:18px 48px 16px 48px;text-align:center}
+              .score-box-title{font-size:27px;color:#1a1a2e;margin-bottom:4px}
+              .score-value-row{font-size:27px;color:#1a1a2e}
+              .score-underline{display:inline-block;min-width:70px;border-bottom:2px solid #1a1a2e;text-align:center;vertical-align:bottom}
+              .footer-row{display:flex;justify-content:space-between;align-items:flex-end;margin-top:12px}
+              .date-block{text-align:center}
+              .date-line{width:200px;border-bottom:1.5px solid #222;margin-bottom:6px;padding-bottom:4px;font-size:12px;font-weight:600;color:#1a1a2e;text-align:center;min-height:22px}
+              .date-label{font-size:11px;font-weight:600;letter-spacing:1px;color:#333;text-align:center}
+              @media print{body{background:white;padding:0}.certificate{box-shadow:none}@page{margin:0;size:A4 portrait}}
+            </style>
+          </head><body>
+            <div class="certificate">
+              <div class="cert-watermark"></div>
+              <div class="qmetric-watermark">QMETRIC</div>
+              <svg class="wave-tr" viewBox="0 0 340 290" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                <path d="M340,0 L340,290 Q200,250 170,155 Q120,40 340,0 Z" fill="#0d1b4b"/>
+                <path d="M340,0 Q305,75 258,128 Q210,178 170,155 Q200,250 340,290" fill="none" stroke="#c9a84c" stroke-width="2.5"/>
+                <path d="M340,0 Q295,65 248,118 Q202,168 180,150 Q208,245 340,290 L340,0 Z" fill="#1a2f6b" opacity="0.45"/>
+              </svg>
+              <svg class="wave-bl" viewBox="0 0 340 290" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                <path d="M0,290 L0,0 Q140,40 170,135 Q220,250 0,290 Z" fill="#0d1b4b"/>
+                <path d="M0,290 Q35,215 82,162 Q130,112 170,135 Q140,40 0,0" fill="none" stroke="#c9a84c" stroke-width="2.5"/>
+                <path d="M0,290 Q45,225 92,172 Q138,122 160,140 Q132,45 0,0 L0,290 Z" fill="#1a2f6b" opacity="0.45"/>
+              </svg>
+              <div class="cert-body">
+                <div class="header-row">
+                  <div class="title-block">
+                    <h1 class="cert-title">Question paper<br>quality certificate</h1>
+                    <p class="by-qmetric">BY QMETRIC</p>
+                  </div>
+                  <div class="badge-wrap">
+                    <svg width="92" height="104" viewBox="0 0 92 104" xmlns="http://www.w3.org/2000/svg">
+                      <defs>
+                        <radialGradient id="outerRing" cx="35%" cy="30%" r="65%"><stop offset="0%" stop-color="#ffe066"/><stop offset="45%" stop-color="#d4a017"/><stop offset="100%" stop-color="#7a5500"/></radialGradient>
+                        <radialGradient id="medalFace" cx="35%" cy="30%" r="65%"><stop offset="0%" stop-color="#ffd24d"/><stop offset="55%" stop-color="#c99010"/><stop offset="100%" stop-color="#8a5c00"/></radialGradient>
+                      </defs>
+                      <polygon points="20,54 36,54 31,104 14,94" fill="#c9a84c"/>
+                      <polygon points="72,54 56,54 61,104 78,94" fill="#b8932a"/>
+                      <circle cx="46" cy="44" r="39" fill="url(#outerRing)"/>
+                      <circle cx="46" cy="44" r="34" fill="none" stroke="#a07820" stroke-width="2" opacity="0.6"/>
+                      <circle cx="46" cy="44" r="31" fill="url(#medalFace)"/>
+                      <ellipse cx="38" cy="36" rx="9" ry="7" fill="rgba(255,255,255,0.22)" transform="rotate(-30 38 36)"/>
+                    </svg>
+                  </div>
                 </div>
-                <div class="badge-wrap">
-                  <svg width="92" height="104" viewBox="0 0 92 104" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <radialGradient id="outerRing" cx="35%" cy="30%" r="65%"><stop offset="0%" stop-color="#ffe066"/><stop offset="45%" stop-color="#d4a017"/><stop offset="100%" stop-color="#7a5500"/></radialGradient>
-                      <radialGradient id="medalFace" cx="35%" cy="30%" r="65%"><stop offset="0%" stop-color="#ffd24d"/><stop offset="55%" stop-color="#c99010"/><stop offset="100%" stop-color="#8a5c00"/></radialGradient>
-                    </defs>
-                    <polygon points="20,54 36,54 31,104 14,94" fill="#c9a84c"/>
-                    <polygon points="72,54 56,54 61,104 78,94" fill="#b8932a"/>
-                    <circle cx="46" cy="44" r="39" fill="url(#outerRing)"/>
-                    <circle cx="46" cy="44" r="34" fill="none" stroke="#a07820" stroke-width="2" opacity="0.6"/>
-                    <circle cx="46" cy="44" r="31" fill="url(#medalFace)"/>
-                    <ellipse cx="38" cy="36" rx="9" ry="7" fill="rgba(255,255,255,0.22)" transform="rotate(-30 38 36)"/>
-                  </svg>
+                <p class="intro-para">This is to certify that the Question Paper Quality Assessment for the<br>course identified below has been conducted and validated in<br>accordance with outcome-based education (OBE) and recognized<br>academic assessment frameworks.</p>
+                <p class="detail-para">The Question Paper Quality Assessment was conducted for the course<br>titled <span class="blank">${data['Course Name'] || ''}</span>, offered under the <span class="blank">${data['Branch'] || ''}</span> program/branch, for the<br><span class="blank">${data['Semester'] || ''}</span> semester of the academic year <span class="blank">${data['Year Of Study'] || ''}</span>. The assessment<br>pertained to the question paper prepared by <span class="blank">${data['Course Teacher'] || ''}</span>, Faculty, Department of<br><span class="blank">${data['College Name'] || ''}</span></p>
+                <div class="assessment-block">
+                  <p>The assessment included systematic evaluation of:</p>
+                  <ul>
+                    <li>Course Outcome alignment</li>
+                    <li>Cognitive level distribution</li>
+                    <li>Syllabus coverage</li>
+                    <li>Analytical depth and fairness</li>
+                  </ul>
                 </div>
-              </div>
-              <p class="intro-para">This is to certify that the Question Paper Quality Assessment for the<br>course identified below has been conducted and validated in<br>accordance with outcome-based education (OBE) and recognized<br>academic assessment frameworks.</p>
-              <p class="detail-para">The Question Paper Quality Assessment was conducted for the course<br>titled <span class="blank">${data['Course Name'] || ''}</span>, offered under the <span class="blank">${data['Branch'] || ''}</span> program/branch, for the<br><span class="blank">${data['Semester'] || ''}</span> semester of the academic year <span class="blank">${data['Year Of Study'] || ''}</span>. The assessment<br>pertained to the question paper prepared by <span class="blank">${data['Course Teacher'] || ''}</span>, Faculty, Department of<br><span class="blank">${data['College Name'] || ''}</span></p>
-              <div class="assessment-block">
-                <p>The assessment included systematic evaluation of:</p>
-                <ul>
-                  <li>Course Outcome alignment</li>
-                  <li>Cognitive level distribution</li>
-                  <li>Syllabus coverage</li>
-                  <li>Analytical depth and fairness</li>
-                </ul>
-              </div>
-              <div class="score-center-row">
-                <div class="score-box">
-                  <div class="score-box-title">Final Quality Score:</div>
-                  <div class="score-value-row"><span class="score-underline">${finalScore.toFixed(1)}</span>%</div>
+                <div class="score-center-row">
+                  <div class="score-box">
+                    <div class="score-box-title">Final Quality Score:</div>
+                    <div class="score-value-row"><span class="score-underline">${finalScore.toFixed(1)}</span>%</div>
+                  </div>
                 </div>
-              </div>
-              <div class="footer-row">
-                <div class="date-block">
-                  <div class="date-line">${dateStr}</div>
-                  <div class="date-label">Date</div>
-                </div>
-                <div>
-                  <svg width="138" height="56" viewBox="0 0 138 56" xmlns="http://www.w3.org/2000/svg">
-                    <defs><linearGradient id="qGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#9b59b6"/><stop offset="50%" stop-color="#3498db"/><stop offset="100%" stop-color="#1abc9c"/></linearGradient></defs>
-                    <text x="0" y="46" font-family="Georgia,serif" font-size="50" font-style="italic" font-weight="700" fill="url(#qGrad)">Q</text>
-                    <circle cx="33" cy="5" r="3.5" fill="url(#qGrad)"/>
-                    <line x1="33" y1="9" x2="33" y2="21" stroke="url(#qGrad)" stroke-width="2" stroke-linecap="round"/>
-                    <line x1="26" y1="13" x2="40" y2="10" stroke="url(#qGrad)" stroke-width="1.8" stroke-linecap="round"/>
-                    <line x1="33" y1="21" x2="27" y2="30" stroke="url(#qGrad)" stroke-width="1.8" stroke-linecap="round"/>
-                    <line x1="33" y1="21" x2="39" y2="30" stroke="url(#qGrad)" stroke-width="1.8" stroke-linecap="round"/>
-                    <text x="46" y="42" font-family="'Gill Sans',Calibri,sans-serif" font-size="23" font-weight="400" fill="#1a1a2e">Metric</text>
-                  </svg>
+                <div class="footer-row">
+                  <div class="date-block">
+                    <div class="date-line">${dateStr}</div>
+                    <div class="date-label">Date</div>
+                  </div>
+                  <div>
+                    <svg width="138" height="56" viewBox="0 0 138 56" xmlns="http://www.w3.org/2000/svg">
+                      <defs><linearGradient id="qGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#9b59b6"/><stop offset="50%" stop-color="#3498db"/><stop offset="100%" stop-color="#1abc9c"/></linearGradient></defs>
+                      <text x="0" y="46" font-family="'Libre Baskerville',Georgia,serif" font-size="50" font-weight="700" fill="url(#qGrad)">Q</text>
+                      <circle cx="33" cy="5" r="3.5" fill="url(#qGrad)"/>
+                      <line x1="33" y1="9" x2="33" y2="21" stroke="url(#qGrad)" stroke-width="2" stroke-linecap="round"/>
+                      <line x1="26" y1="13" x2="40" y2="10" stroke="url(#qGrad)" stroke-width="1.8" stroke-linecap="round"/>
+                      <line x1="33" y1="21" x2="27" y2="30" stroke="url(#qGrad)" stroke-width="1.8" stroke-linecap="round"/>
+                      <line x1="33" y1="21" x2="39" y2="30" stroke="url(#qGrad)" stroke-width="1.8" stroke-linecap="round"/>
+                      <text x="46" y="42" font-family="'Libre Baskerville',Georgia,serif" font-size="23" font-weight="400" fill="#1a1a2e">Metric</text>
+                    </svg>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </body></html>`;
+          </body></html>`;
 
-      printWindow.document.open();
-      printWindow.document.write(certificateHTML);
-      printWindow.document.close();
-      printWindow.focus();
-      setTimeout(() => printWindow.print(), 800);
-    } catch (err) {
-      console.error('Certificate generation failed:', err);
-      alert('Failed to generate certificate. Please try again.');
-    } finally {
-      setIsDownloading(false);
-    }
+        printWindow.document.open();
+        printWindow.document.write(certificateHTML);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => printWindow.print(), 800);
+      })
+      .catch(err => {
+        console.error('Certificate generation failed:', err);
+        alert('Failed to generate certificate. Please try again.');
+      })
+      .finally(() => {
+        setIsDownloading(false);
+      });
   };
-
   const downloadPDF = async () => {
     try {
       setIsDownloading(true);
